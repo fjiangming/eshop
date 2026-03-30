@@ -318,7 +318,7 @@ services:
     container_name: dujiao-aio
     restart: always
     ports:
-      - "${AIO_PORT}:8080"
+      - "${AIO_PORT}:80"
     volumes:
       - ./config.yml:/app/config.yml
       - ./uploads:/app/uploads
