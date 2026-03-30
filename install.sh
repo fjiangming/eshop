@@ -120,6 +120,11 @@ wizard_prompts() {
 
     read -p "1. 请设置部署目录 [默认: /opt/dujiao-next]: " INPUT_DIR
     INSTALL_DIR=${INPUT_DIR:-/opt/dujiao-next}
+    
+    # 解析可能存在的波浪号 (~) 为绝对路径
+    INSTALL_DIR="${INSTALL_DIR/#\~/$HOME}"
+    # 更新状态文件路径
+    STATE_FILE="${INSTALL_DIR}/.dujiao_state"
 
     read -p "2. 您的服务器是否已经安装了宝塔、1Panel 等管理面板？ (Y/n) [默认: n]: " HAS_PANEL
     HAS_PANEL=${HAS_PANEL:-n}
