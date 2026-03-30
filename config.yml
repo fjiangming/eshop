@@ -25,11 +25,11 @@ database:
     conn_max_idle_time_seconds: 1800
 
 jwt:
-  secret: your-secret-key-change-in-production-please
+  secret: b3a4f8e7d2c1945a8f0c3d2e1b4a5f6e8d7c9b0a1f2e3d4c
   expire_hours: 24
 
 user_jwt:
-  secret: user-secret-key-change-in-production-please
+  secret: d9c8b7a6e5f4d3c2b1a0f9e8d7c6b5a4f3e2d1c0b9a8f7e6
   expire_hours: 24
   remember_me_expire_hours: 168
 
