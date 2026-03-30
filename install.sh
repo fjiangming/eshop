@@ -392,12 +392,12 @@ launch_services() {
 setup_cli_alias() {
     log_info "正在为您配置 Linux 全局快捷命令 'dujiao' ..."
     # 将当前执行的脚本自身复制到安装目录
-    if [ -f "\$0" ] && [ "\$0" != "\$INSTALL_DIR/install.sh" ]; then
-        cp "\$0" "\$INSTALL_DIR/install.sh" 2>/dev/null || curl -sL https://raw.githubusercontent.com/fjiangming/eshop/main/install.sh > "\$INSTALL_DIR/install.sh"
+    if [ -f "$0" ] && [ "$0" != "$INSTALL_DIR/install.sh" ]; then
+        cp "$0" "$INSTALL_DIR/install.sh" 2>/dev/null || curl -sL https://raw.githubusercontent.com/fjiangming/eshop/main/install.sh > "$INSTALL_DIR/install.sh"
     fi
-    chmod +x "\$INSTALL_DIR/install.sh"
+    chmod +x "$INSTALL_DIR/install.sh"
     # 创建软链接到系统环境目录
-    ln -sf "\$INSTALL_DIR/install.sh" /usr/local/bin/dujiao
+    ln -sf "$INSTALL_DIR/install.sh" /usr/local/bin/dujiao
     log_success "全局命令安装完毕！无论您在哪个目录，都可以直接键入 'dujiao help' 来管理您的商城！"
 }
 
