@@ -383,48 +383,75 @@ launch_services() {
     fi
 }
 
+# --- 设置 Linux 全局快捷命令 ---
+setup_cli_alias() {
+    log_info "正在为您配置 Linux 全局快捷命令 'dujiao' ..."
+    # 将当前执行的脚本自身复制到安装目录
+    if [ -f "\$0" ] && [ "\$0" != "\$INSTALL_DIR/install.sh" ]; then
+        cp "\$0" "\$INSTALL_DIR/install.sh" 2>/dev/null || curl -sL https://raw.githubusercontent.com/fjiangming/eshop/main/install.sh > "\$INSTALL_DIR/install.sh"
+    fi
+    chmod +x "\$INSTALL_DIR/install.sh"
+    # 创建软链接到系统环境目录
+    ln -sf "\$INSTALL_DIR/install.sh" /usr/local/bin/dujiao
+    log_success "全局命令安装完毕！无论您在哪个目录，都可以直接键入 'dujiao help' 来管理您的商城！"
+}
+
 
 # --- 运维子命令管理 ---
 maintenance_commands() {
-    if [ "$1" == "update" ]; then
-        log_info "正在升级当前容器中的系统..."
-        if [ ! -f "$STATE_FILE" ]; then log_error "找不到状态存档，请确认部署位置！"; fi
-        source "$STATE_FILE"
-        cd "$INSTALL_DIR"
-        $COMPOSE_CMD pull
-        $COMPOSE_CMD up -d
-        $COMPOSE_CMD image prune -f
-        log_success "更新完成！"
-        exit 0
+    if [ ! -f "$STATE_FILE" ]; then 
+        log_error "找不到状态存档，请确认您是否已成功部署此系统！"
     fi
+    source "$STATE_FILE"
     
-    if [ "$1" == "restart" ]; then
-        log_info "正在重启所有相关服务..."
-        source "$STATE_FILE"
-        cd "$INSTALL_DIR"
-        $COMPOSE_CMD restart
-        log_success "重启完成！"
-        exit 0
-    fi
-
-    if [ "$1" == "uninstall" ]; then
-        log_warn "警告！您即将彻底摧毁本程序及其所有产生的数据文件！"
-        read -p "如果您确认这么做，请在此处大写输入 YES : " VERIFY_DEL
-        if [ "$VERIFY_DEL" == "YES" ]; then
-            source "$STATE_FILE"
+    case "$1" in
+        "update")
+            log_info "正在升级当前容器中的系统..."
             cd "$INSTALL_DIR"
-            $COMPOSE_CMD down -v
-            rm -rf "$INSTALL_DIR"
-            if [ -f "/etc/nginx/conf.d/dujiao.conf" ]; then
-                rm -f /etc/nginx/conf.d/dujiao.conf
-                systemctl reload nginx
+            $COMPOSE_CMD pull
+            $COMPOSE_CMD up -d
+            $COMPOSE_CMD image prune -f
+            log_success "更新完成！系统已处于最新状态。"
+            exit 0
+            ;;
+        "restart")
+            log_info "正在重启所有相关服务..."
+            cd "$INSTALL_DIR"
+            $COMPOSE_CMD restart
+            log_success "相关容器重启完成！"
+            exit 0
+            ;;
+        "uninstall")
+            log_warn "警告！您即将彻底摧毁本程序及其所有产生的数据文件！"
+            read -p "如果您确认这么做，请在此处大写输入 YES : " VERIFY_DEL
+            if [ "$VERIFY_DEL" == "YES" ]; then
+                cd "$INSTALL_DIR"
+                $COMPOSE_CMD down -v || true
+                cd /
+                rm -rf "$INSTALL_DIR"
+                if [ -f "/etc/nginx/conf.d/dujiao.conf" ]; then
+                    rm -f /etc/nginx/conf.d/dujiao.conf
+                    systemctl reload nginx || true
+                fi
+                rm -f /usr/local/bin/dujiao
+                log_success "系统残骸已抹平拆除完毕。Linux 中已不再残留该系统组件。"
+            else
+                log_info "卸载操作已终止。"
             fi
-            log_success "系统残骸已抹平拆除完毕。"
-        else
-            log_info "操作已终止。"
-        fi
-        exit 0
-    fi
+            exit 0
+            ;;
+        "help")
+            echo -e "${BLUE}Dujiao-Next AIO 运维指令集 (Linux):${NC}"
+            echo "  dujiao update    - ⚡ 拉取 GitHub 最新镜像并自动平滑更新系统"
+            echo "  dujiao restart   - 🔄 重启所有后台容器服务"
+            echo "  dujiao uninstall - 🗑️ 彻底卸载面板、清理缓存路径并清除所有内部数据"
+            echo "  dujiao help      - ℹ️ 显示此帮助菜单"
+            exit 0
+            ;;
+        *)
+            log_error "未知指令 '$1'！请键入 'dujiao help' 获取支持的命令列表。"
+            ;;
+    esac
 }
 
 # --- 主入口调度 ---
@@ -443,6 +470,7 @@ main() {
     wizard_prompts
     generate_configs
     setup_local_nginx_and_ssl
+    setup_cli_alias
     launch_services
 }
 
