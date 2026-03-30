@@ -13,37 +13,42 @@
 
 ---
 
-## 🚀 如何从云端部署使用？
+## 🚀 一键全栈自动化本地极速部署
 
-由于镜像由 GitHub Action 自动编译后发布在您个人账户的 Container Registry 里，您在服务器只需一个配置文件即可启动系统。
+我们特别为你提供了带彩色中控指引与交互向导的开箱即用（Out of the box!）装配脚本 `install.sh`。它可以帮助小白：
+1. **自动清理环境与探测国内防火墙并加速换源**
+2. **免手写自动部署 Docker/Docker-compose**
+3. **基于图形向导为你定制私人的专属高并发（PostgreSQL/Redis）或轻量（SQLite）容器矩阵组合！** 
 
-### 1. 将配置文件拉取至你的运行服务器
-
-您可以直接在云主机的任何一个指定目录，创建或者下载属于本仓库根目录的 `docker-compose.yml` 文件。如果是新机器：
-
-```bash
-mkdir my-shop && cd my-shop
-wget https://raw.githubusercontent.com/fjiangming/eshop/main/docker-compose.yml
-```
-
-### 2. 启动服务
-
-只要确认你拉下来这个 yml 文件内的镜像名字 `image: ghcr.io/fjiangming/eshop:latest` 正确，直接执行启服务命：
+只需使用 Root 权限，在物理机执行以下一行代码：
 
 ```bash
-docker-compose up -d
+bash <(curl -sL https://raw.githubusercontent.com/fjiangming/eshop/main/install.sh)
 ```
 
-服务初次启动后，它会自动帮您下载远程仓库刚发布成功的新镜像、执行容器进程，还会在您当前的终端目录下解压生成 `uploads/`（放置图片数据）、`logs/` （放置日志）这几个安全的隔离外挂文件夹！
-
-### 3. 系统二次修改相关配置 
-
-当容器第一次完成加载后，宿主机该目录将会被附赠生成最新的核心 `config.yml`。
-您只需在此处输入您想要对接好的数据库连结地址（如果有必要，取消 `docker-compose.yml` 当中针对原生 Postgre 和 Redis 容器的独立注释以快速拉起一个），再次利用 `docker-compose restart` 就能生效使用！
+**交互式提问示例**：
+- 它会询问你的部署目录、主域名是哪一个（自动切断外部 1panel），以及你是否需要开启HTTPS。如果开启了HTTPS，它还自带 ACME 环境签署和自动续期逻辑！
 
 ---
 
-## 🛠 本地二次开发以及手动魔改支持
+## 🛠 系统的运维操作命令
+
+当通过一键脚本 `install.sh` 装配结束后，这行代码本身会沉淀为带有系统生命周期管理的后勤命令：
+
+```bash
+# 无缝平滑的自动升级（自动比对云端最新主支版重新热加载拉取镜像）：
+bash /opt/dujiao-next/install.sh update 
+
+# 系统卡顿或崩溃救援重启
+bash /opt/dujiao-next/install.sh restart 
+
+# 卸载并且移除所有镜像与生成废墟（销毁数据注意！）
+bash /opt/dujiao-next/install.sh uninstall 
+```
+
+---
+
+## 如果你更偏好纯净的高级裸配 (非必须)
 
 除了利用在线 GitHub Action 来挂载云端发版通道以外。您可以随意克隆下来修改 `Dockerfile` 或是代理 `nginx.conf` 之后重编译构建这个私人一体化发行映像：
 
