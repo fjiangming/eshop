@@ -19,7 +19,13 @@ log_warn() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 
 # --- 全局变量与状态存档路径 ---
-INSTALL_DIR="/opt/dujiao-next"
+# 当执行维护命令(带参数)时，脚本一定是在本地执行或通过软链接执行，动态反推真是安装目录
+if [ ! -z "$1" ] && [ -f "$(readlink -f "$0")" ]; then
+    INSTALL_DIR=$(dirname "$(readlink -f "$0")")
+else
+    INSTALL_DIR="/opt/dujiao-next"
+fi
+
 STATE_FILE="${INSTALL_DIR}/.dujiao_state"
 AIO_IMAGE="ghcr.io/fjiangming/eshop:latest"
 COMPOSE_CMD=""
@@ -408,6 +414,14 @@ maintenance_commands() {
     fi
     source "$STATE_FILE"
     
+    if docker compose version >/dev/null 2>&1; then
+        COMPOSE_CMD="docker compose"
+    elif docker-compose version >/dev/null 2>&1; then
+        COMPOSE_CMD="docker-compose"
+    else
+        log_error "未检测到 docker compose 插件，无法执行运维命令。"
+    fi
+
     case "$1" in
         "update")
             log_info "正在升级当前容器中的系统..."
