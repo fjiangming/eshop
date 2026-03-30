@@ -33,17 +33,20 @@ bash <(curl -sL https://raw.githubusercontent.com/fjiangming/eshop/main/install.
 
 ## 🛠 系统的运维操作命令
 
-当通过一键脚本 `install.sh` 装配结束后，这行代码本身会沉淀为带有系统生命周期管理的后勤命令：
+当通过一键脚本 `install.sh` 装配结束后，系统会自动在你的 Linux 中注册一个全局的高级快捷运维指令 `dujiao`：
 
 ```bash
-# 无缝平滑的自动升级（自动比对云端最新主支版重新热加载拉取镜像）：
-bash /opt/dujiao-next/install.sh update 
+# 无缝平滑的自动升级（自动拉取 GitHub 最新镜像并热更新容器）：
+dujiao update 
 
-# 系统卡顿或崩溃救援重启
-bash /opt/dujiao-next/install.sh restart 
+# 系统后台微服务卡顿或报错重启
+dujiao restart 
 
-# 卸载并且移除所有镜像与生成废墟（销毁数据注意！）
-bash /opt/dujiao-next/install.sh uninstall 
+# 卸载面板，移除所有运行环境镜像与废墟残骸（销毁所有数据！注意备份）
+dujiao uninstall 
+
+# 随时在终端内呼叫帮助菜单
+dujiao help
 ```
 
 ---
