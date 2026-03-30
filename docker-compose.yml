@@ -6,7 +6,7 @@ services:
     container_name: dujiao-next-app
     restart: always
     ports:
-      - "80:80"
+      - "2000:80"
     volumes:
       - ./config.yml:/app/config.yml        # 主服务配置文件,首次启动若无该文件,镜像里会自动生成范例
       - ./uploads:/app/uploads              # 持久化存储用户上传的内容，如图片等
@@ -30,7 +30,7 @@ services:
     volumes:
       - ./pg_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "2001:5432"
 
   dujiao-redis:
     image: redis:7-alpine
@@ -39,4 +39,4 @@ services:
     volumes:
       - ./redis_data:/data
     ports:
-      - "6379:6379"
+      - "2002:6379"
