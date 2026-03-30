@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  dujiao-next-aio:
+    image: ghcr.io/fjiangming/eshop:latest
+    container_name: dujiao-next-app
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./config.yml:/app/config.yml        # 主服务配置文件,首次启动若无该文件,镜像里会自动生成范例
+      - ./uploads:/app/uploads              # 持久化存储用户上传的内容，如图片等
+      - ./logs:/app/logs                    # API和系统的运行日志
+      # - ./dujiao.db:/app/dujiao.db        # 如果您的 config.yml 配置了 SQLite 模式，请解除注释或映射所在路径
+    depends_on:
+      - dujiao-db                           # 仅在使用独立的 MySQL/Postgres 库时启用
+      - dujiao-redis                        # (可选) 当使用 Redis 作为队列/缓存时的依赖
+
+  # --------- 可选扩展后端存储容器 --------- 
+  
+  dujiao-db:
+    image: postgres:15-alpine
+    container_name: dujiao-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: dujiao
+      POSTGRES_PASSWORD: secret_password
+      POSTGRES_DB: dujiao_db
+      TZ: Asia/Shanghai
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  dujiao-redis:
+    image: redis:7-alpine
+    container_name: dujiao-redis
+    restart: always
+    volumes:
+      - ./redis_data:/data
+    ports:
+      - "6379:6379"
