@@ -168,7 +168,7 @@ wizard_prompts() {
 
 # --- ACME 与 Nginx 安装 ---
 setup_local_nginx_and_ssl() {
-    if [[ "$NEED_HTTPS" =~ ^[Nn]$ ]] && [ -z "$MAIN_DOMAIN" ]; then
+    if [ -z "$MAIN_DOMAIN" ] || [[ "$NEED_HTTPS" =~ ^[Nn]$ && -z "$MAIN_DOMAIN" ]]; then
         return
     fi
     
