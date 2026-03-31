@@ -3,6 +3,11 @@ WORKDIR /src
 RUN apk add --no-cache git
 # 拉取 admin 端代码进行编译
 RUN git clone https://github.com/dujiao-next/admin.git .
+# 修复: 将 Vue Router 的 base 从默认的 "/" 改为 Vite 的 BASE_URL ("/admin/")
+# 防止子目录部署时路由无法匹配导致白屏
+RUN find src -type f \( -name "*.ts" -o -name "*.js" \) \
+    -exec grep -l "createWebHistory()" {} \; \
+    | xargs -r sed -i 's/createWebHistory()/createWebHistory(import.meta.env.BASE_URL)/g'
 RUN npm install
 # 强制将 Admin 打包到 /admin/ 基础路径下，防止与 User 端路由冲突
 RUN npx vite build --base=/admin/
