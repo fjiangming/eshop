@@ -3,7 +3,7 @@
 
 server:
   host: 0.0.0.0
-  port: 2000
+  port: 8080
   mode: release  # 生产模式
 
 log:
@@ -34,8 +34,8 @@ user_jwt:
   remember_me_expire_hours: 168
 
 bootstrap:
-  default_admin_username: "admin@qq.com"
-  default_admin_password: "Fjm18762378220"
+  default_admin_username: "admin"
+  default_admin_password: "fjm18762378220"
 
 telegram_auth:
   enabled: false
