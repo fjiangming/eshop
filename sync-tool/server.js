@@ -9,17 +9,35 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --- 配置管理 ---
-const CONFIG_PATH = path.join(__dirname, 'config.json');
+const DATA_DIR = path.join(__dirname, 'data');
+const CONFIG_PATH = path.join(DATA_DIR, 'config.json');
 const EXAMPLE_PATH = path.join(__dirname, 'config.example.json');
 
+const DEFAULT_CONFIG = {
+  auth_password: 'changeme',
+  port: 2050,
+  newapi: { base_url: '', token: '' },
+  dujiao: { base_url: '', username: '', password: '' },
+  cron_enabled: false,
+  cron_expression: '*/10 * * * *',
+  tasks: [],
+};
+
 function loadConfig() {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   if (!fs.existsSync(CONFIG_PATH)) {
-    fs.copyFileSync(EXAMPLE_PATH, CONFIG_PATH);
+    // 优先从模板复制，否则使用内置默认值
+    if (fs.existsSync(EXAMPLE_PATH)) {
+      fs.copyFileSync(EXAMPLE_PATH, CONFIG_PATH);
+    } else {
+      fs.writeFileSync(CONFIG_PATH, JSON.stringify(DEFAULT_CONFIG, null, 2), 'utf-8');
+    }
   }
   return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
 }
 
 function saveConfig(cfg) {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(cfg, null, 2), 'utf-8');
 }
 

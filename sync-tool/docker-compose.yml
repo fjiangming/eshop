@@ -6,7 +6,7 @@ services:
     ports:
       - "2050:2050"
     volumes:
-      - ./config.json:/app/config.json
+      - ./data:/app/data
     environment:
       - NODE_ENV=production
       - TZ=Asia/Shanghai

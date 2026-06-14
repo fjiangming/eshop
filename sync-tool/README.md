@@ -72,15 +72,17 @@ npm start
 
 ## 🐳 Docker Compose 部署
 
+> **无需手动编辑配置文件！** 启动后通过 WebUI 完成所有配置，保存即时生效。
+
 ### 方式一：免构建部署（推荐）
 
-无需拉取源码，在服务器上创建一个空目录，只需两个文件即可运行：
+无需拉取源码，在服务器上只需一个 `docker-compose.yml` 即可运行：
 
 ```bash
 mkdir -p /opt/sync-tool && cd /opt/sync-tool
 ```
 
-**① 创建 `docker-compose.yml`**：
+创建 `docker-compose.yml`：
 
 ```yaml
 services:
@@ -91,84 +93,43 @@ services:
     ports:
       - "2050:2050"
     volumes:
-      - ./config.json:/app/config.json
+      - ./data:/app/data
     environment:
       - NODE_ENV=production
       - TZ=Asia/Shanghai
 ```
 
-**② 创建 `config.json`**（参考下方 [准备配置文件](#2-准备配置文件) 章节）
-
-**③ 启动**：
+启动：
 
 ```bash
 docker compose up -d
 ```
 
-> 更新时只需 `docker compose pull && docker compose up -d`，无需重新构建。
+> 更新时只需 `docker compose pull && docker compose up -d`
 
 ---
 
 ### 方式二：拉取源码构建部署
 
 ```bash
-# Git 克隆
 git clone https://github.com/fjiangming/eshop.git
 cd eshop/sync-tool
-
-# 或仅上传 sync-tool 目录
-scp -r sync-tool/ root@your-server:/opt/sync-tool
-ssh root@your-server
-cd /opt/sync-tool
-```
-
-### 准备配置文件
-
-```bash
-# 从模板创建配置（必须在启动前完成）
-cp config.example.json config.json
-
-# 编辑配置
-vi config.json
-```
-
-按需修改以下字段：
-
-```jsonc
-{
-  "auth_password": "your-strong-password",   // 修改登录密码！
-  "port": 2050,
-  "newapi": {
-    "base_url": "https://your-newapi-domain.com",
-    "token": "your-newapi-admin-token"
-  },
-  "dujiao": {
-    "base_url": "https://your-dujiao-domain.com",
-    "username": "admin",
-    "password": "your-admin-password"
-  },
-  "cron_enabled": false,
-  "cron_expression": "*/10 * * * *",
-  "tasks": []
-}
-```
-
-### 构建并启动（方式二适用）
-
-```bash
-# 构建镜像并后台启动
 docker compose up -d --build
-
-# 查看日志
-docker compose logs -f
-
-# 停止服务
-docker compose down
 ```
 
-### 访问面板
+---
 
-浏览器打开 `http://your-server-ip:2050`，使用配置文件中的密码登录。
+### 配置流程
+
+1. 浏览器打开 `http://your-server-ip:2050`
+2. 使用默认密码 `changeme` 登录
+3. 切换到 **⚙️ 全局配置** 页签
+4. 填写 NewAPI 和 Dujiao-Next 的连接信息
+5. 点击 **🔗 测试连接** 验证
+6. **务必修改登录密码**
+7. 点击 **💾 保存配置**（立即生效，自动写入 `data/config.json`）
+
+> 配置数据持久化在 `./data/` 目录中，容器重启不丢失。
 
 ### 更新部署
 
