@@ -1,0 +1,16 @@
+{
+  "auth_password": "changeme",
+  "port": 3456,
+  "newapi": {
+    "base_url": "https://your-newapi-domain.com",
+    "token": "your-newapi-admin-token"
+  },
+  "dujiao": {
+    "base_url": "https://your-dujiao-domain.com",
+    "username": "admin",
+    "password": "your-admin-password"
+  },
+  "cron_enabled": false,
+  "cron_expression": "*/10 * * * *",
+  "tasks": []
+}

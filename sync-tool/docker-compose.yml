@@ -1,0 +1,12 @@
+services:
+  sync-tool:
+    build: .
+    container_name: eshop-sync-tool
+    restart: unless-stopped
+    ports:
+      - "3456:3456"
+    volumes:
+      - ./config.json:/app/config.json
+    environment:
+      - NODE_ENV=production
+      - TZ=Asia/Shanghai

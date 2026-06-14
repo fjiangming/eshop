@@ -1,0 +1,14 @@
+{
+  "name": "eshop-sync-tool",
+  "version": "1.0.0",
+  "description": "NewAPI 兑换码 → Dujiao-Next 卡密自动同步工具",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "node-cron": "^3.0.3"
+  }
+}

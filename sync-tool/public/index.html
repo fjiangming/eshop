@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>卡密同步工具</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0e17;--surface:#111827;--surface2:#1e293b;--border:#2d3748;--accent:#6366f1;--accent2:#818cf8;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--text:#e2e8f0;--text2:#94a3b8;--radius:10px}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#1e1b4b 0%,var(--bg) 70%)}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px;width:360px;text-align:center}
+.login-box h1{font-size:24px;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.login-box p{color:var(--text2);font-size:13px;margin-bottom:24px}
+input,select,textarea{width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none;transition:border .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+.btn{padding:10px 20px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-success{background:var(--green);color:#fff}
+.btn-danger{background:var(--red);color:#fff}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--text)}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+/* Layout */
+.app{display:none}
+.header{padding:16px 24px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:18px;background:linear-gradient(135deg,var(--accent),#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.tabs{display:flex;gap:4px;padding:12px 24px;background:var(--surface)}
+.tab{padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);transition:all .2s}
+.tab.active{background:var(--accent);color:#fff}
+.tab:hover:not(.active){background:var(--surface2)}
+.content{padding:24px;max-width:1200px;margin:0 auto}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.card-title{font-size:15px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:12px;color:var(--text2);margin-bottom:5px;font-weight:500}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+/* Tasks */
+.task-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;transition:border-color .2s}
+.task-card:hover{border-color:var(--accent)}
+.task-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.task-name{font-weight:600;font-size:15px}
+.task-meta{display:flex;gap:16px;font-size:12px;color:var(--text2);flex-wrap:wrap}
+.task-meta span{display:flex;align-items:center;gap:4px}
+.task-actions{display:flex;gap:6px;margin-top:12px}
+.badge{padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-on{background:#22c55e22;color:var(--green)}
+.badge-off{background:#ef444422;color:var(--red)}
+.badge-running{background:#6366f122;color:var(--accent2);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* Log */
+.log-panel{background:#0d1117;border:1px solid var(--border);border-radius:var(--radius);height:320px;overflow-y:auto;padding:12px;font-family:'Cascadia Code','Fira Code',monospace;font-size:12px;line-height:1.8}
+.log-line{white-space:pre-wrap;word-break:break-all}
+.log-info{color:#7dd3fc}
+.log-warn{color:var(--yellow)}
+.log-error{color:var(--red)}
+.log-ts{color:#475569;margin-right:8px}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:100}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;width:560px;max-height:80vh;overflow-y:auto}
+.modal h2{font-size:18px;margin-bottom:16px}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.status-dot.on{background:var(--green)}
+.status-dot.off{background:var(--red)}
+
+/* Toggle */
+.toggle{position:relative;width:40px;height:22px;cursor:pointer}
+.toggle input{display:none}
+.toggle span{position:absolute;inset:0;background:var(--border);border-radius:22px;transition:.3s}
+.toggle input:checked+span{background:var(--accent)}
+.toggle span::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.3s}
+.toggle input:checked+span::after{left:21px}
+
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- 登录 -->
+<div class="login-wrap" id="loginView">
+  <div class="login-box">
+    <h1>🔗 卡密同步工具</h1>
+    <p>NewAPI 兑换码 → Dujiao-Next 卡密</p>
+    <div class="form-group"><input type="password" id="loginPwd" placeholder="输入管理密码" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="doLogin()">登 录</button>
+    <p id="loginErr" style="color:var(--red);margin-top:12px;font-size:12px"></p>
+  </div>
+</div>
+
+<!-- 主界面 -->
+<div class="app" id="appView">
+  <div class="header">
+    <h1>🔗 卡密同步工具</h1>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span id="djTokenBadge" class="badge badge-off">DJ:未连接</span>
+      <span id="cronBadge" class="badge badge-off">定时关闭</span>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()">退出</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="tasks" onclick="switchTab('tasks')">📋 任务管理</div>
+    <div class="tab" data-tab="config" onclick="switchTab('config')">⚙️ 全局配置</div>
+    <div class="tab" data-tab="logs" onclick="switchTab('logs')">📜 运行日志</div>
+  </div>
+
+  <!-- 任务页 -->
+  <div class="content" id="tab-tasks">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2 style="font-size:16px">同步任务列表</h2>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="executeAll()">▶ 全部执行</button>
+        <button class="btn btn-primary btn-sm" onclick="openTaskModal()">+ 新建任务</button>
+      </div>
+    </div>
+    <div id="taskList"><p style="color:var(--text2);text-align:center;padding:40px">加载中...</p></div>
+  </div>
+
+  <!-- 配置页 -->
+  <div class="content hidden" id="tab-config">
+    <div class="card">
+      <div class="card-title">🌐 平台配置</div>
+      <div class="form-row">
+        <div>
+          <div class="form-group"><label>NewAPI 地址</label><input id="cfgNaUrl" placeholder="https://your-newapi.com"></div>
+          <div class="form-group"><label>NewAPI Token</label><input id="cfgNaToken" type="password" placeholder="管理员 Token"></div>
+        </div>
+        <div>
+          <div class="form-group"><label>Dujiao-Next 地址</label><input id="cfgDjUrl" placeholder="https://your-dujiao.com"></div>
+          <div class="form-group"><label>Dujiao 管理员用户名</label><input id="cfgDjUser" placeholder="admin"></div>
+          <div class="form-group"><label>Dujiao 管理员密码</label><input id="cfgDjPass" type="password" placeholder="留空不修改"></div>
+          <div style="margin-top:6px;display:flex;gap:8px;align-items:center">
+            <button class="btn btn-ghost btn-sm" onclick="testDjLogin()">🔗 测试连接</button>
+            <span id="djTestResult" style="font-size:12px"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⏰ 定时巡检</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>启用定时巡检</label>
+          <label class="toggle" style="margin-top:4px"><input type="checkbox" id="cfgCronEnabled"><span></span></label>
+        </div>
+        <div class="form-group"><label>Cron 表达式</label><input id="cfgCronExpr" placeholder="*/10 * * * *"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔐 安全设置</div>
+      <div class="form-group" style="max-width:300px"><label>修改登录密码</label><input id="cfgPassword" type="password" placeholder="留空则不修改"></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveConfig()" style="margin-top:8px">💾 保存配置</button>
+  </div>
+
+  <!-- 日志页 -->
+  <div class="content hidden" id="tab-logs">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h2 style="font-size:16px">实时日志</h2>
+      <button class="btn btn-ghost btn-sm" onclick="clearLogs()">清空</button>
+    </div>
+    <div class="log-panel" id="logPanel"></div>
+  </div>
+</div>
+
+<!-- 任务编辑模态框 -->
+<div class="modal-overlay hidden" id="taskModal">
+  <div class="modal">
+    <h2 id="modalTitle">新建任务</h2>
+    <input type="hidden" id="editTaskId">
+    <div class="form-group"><label>任务名称</label><input id="taskName" placeholder="例如：10$ 兑换码补货"></div>
+    <div class="form-group">
+      <label>启用任务</label>
+      <label class="toggle" style="margin-top:4px"><input type="checkbox" id="taskEnabled" checked><span></span></label>
+    </div>
+    <div style="margin-bottom:10px">
+      <button class="btn btn-ghost btn-sm" onclick="fetchProducts()">📦 从 Dujiao 拉取商品列表</button>
+    </div>
+    <div class="form-group" id="productSelectWrap" style="display:none">
+      <label>选择商品</label>
+      <select id="productSelect" onchange="onProductSelected()"></select>
+    </div>
+    <div class="form-group" id="skuSelectWrap" style="display:none">
+      <label>选择 SKU</label>
+      <select id="skuSelect" onchange="onSkuSelected()"></select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Dujiao 商品ID</label><input id="taskProductId" type="number" placeholder="3"></div>
+      <div class="form-group"><label>Dujiao SKU ID</label><input id="taskSkuId" type="number" placeholder="4"></div>
+    </div>
+    <div class="form-group"><label>商品名称（备注）</label><input id="taskProductName" placeholder="便于识别"></div>
+    <div class="form-row">
+      <div class="form-group"><label>库存阈值（低于此值触发补货）</label><input id="taskThreshold" type="number" value="5"></div>
+      <div class="form-group"><label>目标库存（补货到此数量）</label><input id="taskTargetStock" type="number" value="10"></div>
+    </div>
+    <div class="form-group"><label>批次号（batch_no，可为空）</label><input id="taskBatchNo" placeholder="留空自动生成"></div>
+    <hr style="border-color:var(--border);margin:16px 0">
+    <div class="card-title" style="font-size:13px">NewAPI 兑换码参数</div>
+    <div class="form-row-3">
+      <div class="form-group"><label>兑换码名称</label><input id="taskNaName" placeholder="自动生成"></div>
+      <div class="form-group"><label>额度 (quota)</label><input id="taskNaQuota" type="number" value="500000"></div>
+      <div class="form-group"><label>前缀 (prefix)</label><input id="taskNaPrefix" placeholder="AUTO"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeTaskModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveTask()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let token = sessionStorage.getItem('sync_token') || '';
+let evtSource = null;
+let _productsCache = [];
+
+// --- API helper with auth ---
+async function api(method, path, body) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const opts = { method, headers };
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    const res = await fetch(path, opts);
+    if (res.status === 401 && path !== '/api/login') {
+      token = ''; sessionStorage.removeItem('sync_token');
+      location.reload(); return { ok: false, msg: '登录已过期' };
+    }
+    try { return await res.json(); } catch { return { ok: false, msg: `服务端响应异常 (${res.status})` }; }
+  } catch (e) {
+    return { ok: false, msg: '网络错误: ' + e.message };
+  }
+}
+
+// --- Auth ---
+async function doLogin() {
+  const pwd = document.getElementById('loginPwd').value;
+  const res = await api('POST', '/api/login', { password: pwd });
+  if (res.ok) {
+    token = res.token; sessionStorage.setItem('sync_token', token); showApp();
+  } else {
+    document.getElementById('loginErr').textContent = res.msg || '密码错误';
+  }
+}
+function doLogout() {
+  api('POST', '/api/logout').catch(()=>{});
+  token = ''; sessionStorage.removeItem('sync_token'); location.reload();
+}
+function showApp() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('appView').style.display = 'block';
+  connectSSE(); loadConfig(); loadTasks();
+}
+
+// --- SSE ---
+function connectSSE() {
+  if (evtSource) evtSource.close();
+  evtSource = new EventSource('/api/events');
+  evtSource.onmessage = (e) => {
+    const d = JSON.parse(e.data);
+    if (d.type === 'log') appendLog(d);
+    if (d.type === 'task_status') updateTaskBadge(d.taskId, d.status);
+  };
+}
+function appendLog(d) {
+  const p = document.getElementById('logPanel');
+  const ts = d.ts ? d.ts.replace('T',' ').slice(11,19) : '';
+  const cls = d.level==='error'?'log-error':d.level==='warn'?'log-warn':'log-info';
+  p.innerHTML += `<div class="log-line"><span class="log-ts">${ts}</span><span class="${cls}">${d.msg}</span></div>`;
+  p.scrollTop = p.scrollHeight;
+}
+function clearLogs() { document.getElementById('logPanel').innerHTML = ''; }
+
+// --- Tabs ---
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  ['tasks','config','logs'].forEach(n => document.getElementById('tab-'+n).classList.toggle('hidden', n !== name));
+}
+
+// --- Config ---
+async function loadConfig() {
+  const res = await api('GET', '/api/config');
+  if (!res.ok) return;
+  const c = res.data;
+  document.getElementById('cfgNaUrl').value = c.newapi.base_url || '';
+  document.getElementById('cfgNaToken').value = c.newapi.token || '';
+  document.getElementById('cfgDjUrl').value = c.dujiao.base_url || '';
+  document.getElementById('cfgDjUser').value = c.dujiao.username || '';
+  document.getElementById('cfgDjPass').value = '';
+  document.getElementById('cfgCronEnabled').checked = c.cron_enabled;
+  document.getElementById('cfgCronExpr').value = c.cron_expression || '';
+  document.getElementById('cronBadge').className = 'badge ' + (c.cron_enabled ? 'badge-on' : 'badge-off');
+  document.getElementById('cronBadge').textContent = c.cron_enabled ? '定时开启' : '定时关闭';
+  // Token 状态
+  const ts = c._dj_token_status;
+  const djBadge = document.getElementById('djTokenBadge');
+  if (ts && ts.has_token) {
+    djBadge.className = 'badge badge-on';
+    djBadge.textContent = `DJ:已连接(${ts.remaining_hours}h)`;
+  } else {
+    djBadge.className = 'badge badge-off';
+    djBadge.textContent = 'DJ:未连接';
+  }
+}
+async function saveConfig() {
+  const body = {
+    newapi: { base_url: document.getElementById('cfgNaUrl').value, token: document.getElementById('cfgNaToken').value },
+    dujiao: { base_url: document.getElementById('cfgDjUrl').value, username: document.getElementById('cfgDjUser').value, password: document.getElementById('cfgDjPass').value },
+    cron_enabled: document.getElementById('cfgCronEnabled').checked,
+    cron_expression: document.getElementById('cfgCronExpr').value,
+  };
+  const pwd = document.getElementById('cfgPassword').value;
+  if (pwd) body.auth_password = pwd;
+  await api('PUT', '/api/config', body);
+  loadConfig();
+  alert('配置已保存');
+}
+async function testDjLogin() {
+  const el = document.getElementById('djTestResult');
+  el.textContent = '连接中...'; el.style.color = 'var(--text2)';
+  const res = await api('POST', '/api/dujiao/test-login');
+  if (res.ok) {
+    el.textContent = `✅ 成功 (${res.remaining_hours}h)`; el.style.color = 'var(--green)';
+    loadConfig();
+  } else {
+    el.textContent = '❌ ' + (res.msg||'失败'); el.style.color = 'var(--red)';
+  }
+}
+
+// --- Tasks ---
+async function loadTasks() {
+  const res = await api('GET', '/api/tasks');
+  if (!res.ok) return;
+  const el = document.getElementById('taskList');
+  if (!res.data.length) { el.innerHTML = '<p style="color:var(--text2);text-align:center;padding:40px">暂无任务，点击右上角「新建任务」开始</p>'; return; }
+  el.innerHTML = res.data.map(t => {
+    const st = t.state || {};
+    const statusBadge = st.running ? '<span class="badge badge-running">执行中</span>' : t.enabled ? '<span class="badge badge-on">已启用</span>' : '<span class="badge badge-off">已禁用</span>';
+    const lastInfo = st.lastResult ? `<span>上次: ${st.lastResult.success?'✅':'❌'} ${st.lastResult.msg||''}</span>` : '';
+    return `<div class="task-card" id="tc-${t.id}">
+      <div class="task-header"><span class="task-name">${esc(t.name)}</span>${statusBadge}</div>
+      <div class="task-meta">
+        <span>📦 商品:${t.product_id} / SKU:${t.sku_id}</span>
+        <span>📊 阈值:${t.threshold} / 目标:${t.target_stock}</span>
+        <span>💰 额度:${t.newapi_quota}</span>
+        ${t.newapi_prefix?`<span>🏷️ ${esc(t.newapi_prefix)}</span>`:''}
+        ${lastInfo}
+      </div>
+      <div class="task-actions">
+        <button class="btn ${t.enabled?'btn-ghost':'btn-success'} btn-sm" onclick="toggleTask('${t.id}')">${t.enabled?'⏸ 禁用':'▶ 启用'}</button>
+        <button class="btn btn-primary btn-sm" onclick="execTask('${t.id}')">▶ 执行</button>
+        <button class="btn btn-ghost btn-sm" onclick="checkTask('${t.id}')">📊 查库存</button>
+        <button class="btn btn-ghost btn-sm" onclick="editTask('${t.id}')">✏️ 编辑</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteTask('${t.id}')">🗑️ 删除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+async function toggleTask(id) {
+  await api('PATCH', `/api/tasks/${id}/toggle`);
+  loadTasks();
+}
+async function execTask(id) {
+  if (!confirm('确认执行？')) return;
+  updateTaskBadge(id,'running');
+  await api('POST', `/api/tasks/${id}/execute`);
+  setTimeout(loadTasks, 1000);
+}
+async function executeAll() {
+  if (!confirm('确认执行所有已启用的任务？')) return;
+  await api('POST', '/api/tasks/execute-all');
+  setTimeout(loadTasks, 1000);
+}
+async function checkTask(id) {
+  const res = await api('POST', `/api/tasks/${id}/check`);
+  if (res.ok) {
+    const d = res.data;
+    alert(`库存: 可用=${d.available} 预留=${d.reserved} 已用=${d.used}\n阈值:${res.threshold} 目标:${res.target_stock}\n${d.available<res.threshold?'⚠️ 需补货':'✅ 充足'}`);
+  } else { alert('查询失败: '+(res.msg||'未知')); }
+}
+function updateTaskBadge(taskId, status) {
+  const el = document.getElementById('tc-'+taskId); if(!el)return;
+  const badge = el.querySelector('.badge'); if(!badge)return;
+  if(status==='running'){badge.className='badge badge-running';badge.textContent='执行中';}
+  else if(status==='success'){badge.className='badge badge-on';badge.textContent='成功';setTimeout(loadTasks,500);}
+  else if(status==='error'){badge.className='badge badge-off';badge.textContent='失败';setTimeout(loadTasks,500);}
+}
+
+// --- Task Modal ---
+function openTaskModal(task) {
+  document.getElementById('taskModal').classList.remove('hidden');
+  document.getElementById('modalTitle').textContent = task ? '编辑任务' : '新建任务';
+  document.getElementById('editTaskId').value = task ? task.id : '';
+  document.getElementById('taskName').value = task ? task.name : '';
+  document.getElementById('taskEnabled').checked = task ? task.enabled : true;
+  document.getElementById('taskProductId').value = task ? task.product_id : '';
+  document.getElementById('taskSkuId').value = task ? task.sku_id : '';
+  document.getElementById('taskProductName').value = task ? task.product_name : '';
+  document.getElementById('taskThreshold').value = task ? task.threshold : 5;
+  document.getElementById('taskTargetStock').value = task ? task.target_stock : 10;
+  document.getElementById('taskBatchNo').value = task ? task.batch_no : '';
+  document.getElementById('taskNaName').value = task ? task.newapi_name : '';
+  document.getElementById('taskNaQuota').value = task ? task.newapi_quota : 500000;
+  document.getElementById('taskNaPrefix').value = task ? task.newapi_prefix : '';
+  document.getElementById('productSelectWrap').style.display = 'none';
+  document.getElementById('skuSelectWrap').style.display = 'none';
+}
+function closeTaskModal() { document.getElementById('taskModal').classList.add('hidden'); }
+
+async function editTask(id) {
+  const res = await api('GET', '/api/tasks');
+  const task = res.data.find(t => t.id === id);
+  if (task) openTaskModal(task);
+}
+async function saveTask() {
+  const id = document.getElementById('editTaskId').value;
+  const body = {
+    name: document.getElementById('taskName').value,
+    enabled: document.getElementById('taskEnabled').checked,
+    product_id: document.getElementById('taskProductId').value,
+    sku_id: document.getElementById('taskSkuId').value,
+    product_name: document.getElementById('taskProductName').value,
+    threshold: document.getElementById('taskThreshold').value,
+    target_stock: document.getElementById('taskTargetStock').value,
+    batch_no: document.getElementById('taskBatchNo').value,
+    newapi_name: document.getElementById('taskNaName').value,
+    newapi_quota: document.getElementById('taskNaQuota').value,
+    newapi_prefix: document.getElementById('taskNaPrefix').value,
+  };
+  if (id) await api('PUT', `/api/tasks/${id}`, body);
+  else await api('POST', '/api/tasks', body);
+  closeTaskModal(); loadTasks();
+}
+async function deleteTask(id) {
+  if (!confirm('确认删除？')) return;
+  await api('DELETE', `/api/tasks/${id}`); loadTasks();
+}
+
+// --- SKU Selector ---
+async function fetchProducts() {
+  const wrap = document.getElementById('productSelectWrap');
+  const sel = document.getElementById('productSelect');
+  wrap.style.display = 'block';
+  sel.innerHTML = '<option>加载中...</option>';
+  const res = await api('GET', '/api/proxy/dujiao/products');
+  if (res.status_code === 0 && res.data) {
+    _productsCache = res.data;
+    sel.innerHTML = '<option value="">-- 选择商品 --</option>' + res.data.map(p => {
+      const title = p.title?.['zh-CN'] || p.title?.['en-US'] || p.slug || `商品${p.id}`;
+      return `<option value="${p.id}">${title} (ID:${p.id}, 库存:${p.auto_stock_available||0})</option>`;
+    }).join('');
+  } else {
+    sel.innerHTML = '<option value="">加载失败</option>';
+  }
+}
+function onProductSelected() {
+  const pid = document.getElementById('productSelect').value;
+  if (!pid) return;
+  const product = _productsCache.find(p => String(p.id) === pid);
+  if (!product) return;
+  document.getElementById('taskProductId').value = pid;
+  const title = product.title?.['zh-CN'] || product.title?.['en-US'] || product.slug || '';
+  document.getElementById('taskProductName').value = title;
+  // 填充 SKU 下拉
+  const skuWrap = document.getElementById('skuSelectWrap');
+  const skuSel = document.getElementById('skuSelect');
+  if (product.skus && product.skus.length > 0) {
+    skuWrap.style.display = 'block';
+    skuSel.innerHTML = product.skus.map(s => {
+      const label = s.sku_name || s.sku_code || `SKU ${s.id}`;
+      return `<option value="${s.id}">${label} (ID:${s.id})</option>`;
+    }).join('');
+    document.getElementById('taskSkuId').value = product.skus[0].id;
+  } else {
+    skuWrap.style.display = 'none';
+  }
+}
+function onSkuSelected() {
+  document.getElementById('taskSkuId').value = document.getElementById('skuSelect').value;
+}
+
+// Auto-login check
+if (token) showApp();
+</script>
+</body>
+</html>
