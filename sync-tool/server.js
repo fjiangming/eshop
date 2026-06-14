@@ -16,7 +16,7 @@ const EXAMPLE_PATH = path.join(__dirname, 'config.example.json');
 const DEFAULT_CONFIG = {
   auth_password: 'changeme',
   port: 2050,
-  newapi: { base_url: '', token: '' },
+  newapi: { base_url: '', token: '', uid: '' },
   dujiao: { base_url: '', username: '', password: '' },
   cron_enabled: false,
   cron_expression: '*/10 * * * *',
@@ -198,7 +198,11 @@ async function djImportCards(productId, skuId, secrets, batchNo = '', note = '',
 
 // --- NewAPI ---
 function naHeaders() {
-  return { 'Authorization': `Bearer ${config.newapi.token}` };
+  const headers = { 'Authorization': `Bearer ${config.newapi.token}` };
+  if (config.newapi.uid) {
+    headers['New-Api-User'] = String(config.newapi.uid);
+  }
+  return headers;
 }
 
 async function naCreateRedemption(name, quota, count, prefix = '') {
@@ -433,6 +437,7 @@ app.put('/api/config', (req, res) => {
   if (updates.newapi) {
     if (updates.newapi.base_url !== undefined) config.newapi.base_url = updates.newapi.base_url;
     if (updates.newapi.token && updates.newapi.token !== '***已配置***') config.newapi.token = updates.newapi.token;
+    if (updates.newapi.uid !== undefined) config.newapi.uid = updates.newapi.uid;
   }
   if (updates.dujiao) {
     if (updates.dujiao.base_url !== undefined) config.dujiao.base_url = updates.dujiao.base_url;

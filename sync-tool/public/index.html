@@ -134,6 +134,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
         <div>
           <div class="form-group"><label>NewAPI 地址</label><input id="cfgNaUrl" placeholder="https://your-newapi.com"></div>
           <div class="form-group"><label>NewAPI Token</label><input id="cfgNaToken" type="password" placeholder="管理员 Token"></div>
+          <div class="form-group"><label>NewAPI 管理员 UID</label><input id="cfgNaUid" placeholder="例如：1"></div>
         </div>
         <div>
           <div class="form-group"><label>Dujiao-Next 地址</label><input id="cfgDjUrl" placeholder="https://your-dujiao.com"></div>
@@ -293,6 +294,7 @@ async function loadConfig() {
   const c = res.data;
   document.getElementById('cfgNaUrl').value = c.newapi.base_url || '';
   document.getElementById('cfgNaToken').value = c.newapi.token || '';
+  document.getElementById('cfgNaUid').value = c.newapi.uid || '';
   document.getElementById('cfgDjUrl').value = c.dujiao.base_url || '';
   document.getElementById('cfgDjUser').value = c.dujiao.username || '';
   document.getElementById('cfgDjPass').value = '';
@@ -313,7 +315,7 @@ async function loadConfig() {
 }
 async function saveConfig() {
   const body = {
-    newapi: { base_url: document.getElementById('cfgNaUrl').value, token: document.getElementById('cfgNaToken').value },
+    newapi: { base_url: document.getElementById('cfgNaUrl').value, token: document.getElementById('cfgNaToken').value, uid: document.getElementById('cfgNaUid').value },
     dujiao: { base_url: document.getElementById('cfgDjUrl').value, username: document.getElementById('cfgDjUser').value, password: document.getElementById('cfgDjPass').value },
     cron_enabled: document.getElementById('cfgCronEnabled').checked,
     cron_expression: document.getElementById('cfgCronExpr').value,

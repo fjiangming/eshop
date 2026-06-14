@@ -3,7 +3,8 @@
   "port": 2050,
   "newapi": {
     "base_url": "https://your-newapi-domain.com",
-    "token": "your-newapi-admin-token"
+    "token": "your-newapi-admin-token",
+    "uid": "1"
   },
   "dujiao": {
     "base_url": "https://your-dujiao-domain.com",
