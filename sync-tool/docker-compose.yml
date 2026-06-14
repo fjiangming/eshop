@@ -4,7 +4,7 @@ services:
     container_name: eshop-sync-tool
     restart: unless-stopped
     ports:
-      - "3456:3456"
+      - "2050:2050"
     volumes:
       - ./config.json:/app/config.json
     environment:

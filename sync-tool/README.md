@@ -47,7 +47,7 @@ npm run dev
 npm start
 ```
 
-首次启动会从 `config.example.json` 复制生成 `config.json`，打开浏览器访问 `http://localhost:3456`，默认密码 `changeme`。
+首次启动会从 `config.example.json` 复制生成 `config.json`，打开浏览器访问 `http://localhost:2050`，默认密码 `changeme`。
 
 ### 初始配置
 
@@ -89,7 +89,7 @@ services:
     container_name: eshop-sync-tool
     restart: unless-stopped
     ports:
-      - "3456:3456"
+      - "2050:2050"
     volumes:
       - ./config.json:/app/config.json
     environment:
@@ -137,7 +137,7 @@ vi config.json
 ```jsonc
 {
   "auth_password": "your-strong-password",   // 修改登录密码！
-  "port": 3456,
+  "port": 2050,
   "newapi": {
     "base_url": "https://your-newapi-domain.com",
     "token": "your-newapi-admin-token"
@@ -168,7 +168,7 @@ docker compose down
 
 ### 访问面板
 
-浏览器打开 `http://your-server-ip:3456`，使用配置文件中的密码登录。
+浏览器打开 `http://your-server-ip:2050`，使用配置文件中的密码登录。
 
 ### 更新部署
 
@@ -202,7 +202,7 @@ server {
     ssl_certificate_key /path/to/key.pem;
 
     location / {
-        proxy_pass http://127.0.0.1:3456;
+        proxy_pass http://127.0.0.1:2050;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
